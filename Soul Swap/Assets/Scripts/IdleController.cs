@@ -2,19 +2,17 @@ using UnityEngine;
 using System.Collections;
 
 // Add this to the AI character
-[RequireComponent(typeof(CharacterDriver))]
-public class IdleInput : CharacterInput
+public class IdleController : InputController
 {
     public float exploreDistance = 4;
     public float exploreWait = 4;
-
-    CharacterDriver characterDriver;
+    
     Vector3? destination;
     float exploreWaitTimer;
 
-    void Awake()
+    public override void Awake()
     {
-        characterDriver = GetComponent<CharacterDriver>();
+        base.Awake();
 
         exploreWaitTimer = exploreWait;
     }
@@ -23,8 +21,6 @@ public class IdleInput : CharacterInput
     {
         if (characterDriver.isGrounded)
         {
-            Debug.Log("Grounded");
-
             if (destination == null)
             {
                 if (exploreWaitTimer < exploreWait)
@@ -38,24 +34,24 @@ public class IdleInput : CharacterInput
                     randomDirection.z = randomDirection.y;
                     randomDirection.y = 0;
 
-                    destination = transform.position + randomDirection * exploreDistance;
+                    destination = transform.parent.position + randomDirection * exploreDistance;
                     exploreWaitTimer = 0;
                 }
             }
 
             if (destination != null)
             {
-                Vector3 direction = (destination.Value - transform.position).normalized;
-                float distance = Vector3.Distance(transform.position, destination.Value);
+                Vector3 direction = (destination.Value - transform.parent.position).normalized;
+                float distance = Vector3.Distance(transform.parent.position, destination.Value);
 
                 characterDriver.velocity = direction * characterDriver.walkSpeed;
 
-                transform.eulerAngles = new Vector3(0, Vector3.Angle(Vector3.forward, direction), 0);
+                transform.parent.eulerAngles = new Vector3(0, Vector3.Angle(Vector3.forward, direction), 0);
 
                 if ((characterDriver.velocity * Time.deltaTime).magnitude >= distance)
                 {
                     characterDriver.velocity = Vector3.zero;
-                    transform.position = destination.Value;
+                    transform.parent.position = destination.Value;
                     destination = null;
                 }
             }
@@ -65,10 +61,8 @@ public class IdleInput : CharacterInput
 
         else
         {
-            Debug.Log("Not grounded");
             characterDriver.velocity += Physics.gravity * Time.deltaTime;
         }
-        Debug.Log("Velocity " + characterDriver.velocity.y);
 
         characterDriver.Move(characterDriver.velocity * Time.deltaTime);
     }
