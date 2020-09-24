@@ -1,20 +1,21 @@
 using UnityEngine;
-using UnityStandardAssets.CrossPlatformInput;
-using System.Collections;
-using System.Reflection;
+using UnityEngine.InputSystem;
 
 // Add this to the player character
 public class PlayerController : InputController
 {
     public float lookSensitivity = 1;
-    
+
     float lookPitch = 0;
+
+    Vector2 lookInput = Vector2.zero;
+    Vector2 movementInput = Vector2.zero;
+    bool sprint = false;
+    bool jump = false;
+    bool soulSwap = false;
 
     void Update()
     {
-        Vector2 movementInput = new Vector2(CrossPlatformInputManager.GetAxis("Horizontal"), CrossPlatformInputManager.GetAxis("Vertical"));
-        Vector2 lookInput = new Vector2(CrossPlatformInputManager.GetAxisRaw("Mouse X"), CrossPlatformInputManager.GetAxisRaw("Mouse Y"));
-
         transform.parent.Rotate(new Vector3(0, lookInput.x));
         lookPitch -= lookInput.y;
         lookPitch = Mathf.Clamp(lookPitch, -90, 90);
@@ -24,13 +25,14 @@ public class PlayerController : InputController
         {
             characterDriver.velocity = transform.rotation * new Vector3(movementInput.x, 0, movementInput.y) * characterDriver.walkSpeed;
 
-            if (Input.GetKey(KeyCode.LeftShift))
+            if (sprint)
             {
                 characterDriver.velocity *= characterDriver.sprintSpeed / characterDriver.walkSpeed;
             }
 
-            if (CrossPlatformInputManager.GetButtonDown("Jump"))
+            if (jump)
             {
+                jump = false;
                 characterDriver.velocity.y = characterDriver.jumpVelocity;
             }
 
@@ -39,18 +41,18 @@ public class PlayerController : InputController
                 characterDriver.velocity.y = -characterDriver.groundedVelocity;
             }
         }
-        
+
         else
         {
             characterDriver.velocity += Physics.gravity * Time.deltaTime;
         }
-        
+
         characterDriver.Move(characterDriver.velocity * Time.deltaTime);
     }
-    
+
     void LateUpdate()
     {
-        if (Input.GetKeyDown(KeyCode.E))
+        if (soulSwap)
         {
             RaycastHit hit;
 
@@ -78,5 +80,30 @@ public class PlayerController : InputController
         CharacterDriver cDriver = character.characterDriver;
         character.characterDriver = characterDriver;
         characterDriver = cDriver;
+    }
+
+    public void OnLook(InputAction.CallbackContext context)
+    {
+        lookInput = context.ReadValue<Vector2>();
+    }
+
+    public void OnMove(InputAction.CallbackContext context)
+    {
+        movementInput = context.ReadValue<Vector2>();
+    }
+
+    public void OnJump(InputAction.CallbackContext context)
+    {
+        jump = context.performed;
+    }
+
+    public void OnSprint(InputAction.CallbackContext context)
+    {
+        sprint = context.performed;
+    }
+
+    public void OnSoulSwap(InputAction.CallbackContext context)
+    {
+        soulSwap = context.performed;
     }
 }
