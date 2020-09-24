@@ -1,0 +1,29 @@
+name: Main
+
+on: push
+
+jobs:
+  deploy:
+    name: Deploy
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          lfs: true
+
+      - uses: actions/cache@v2
+        with:
+          path: Library
+          key: Library
+
+      - uses: webbertakken/unity-builder@v1.2
+        env:
+          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+        with:
+          unityVersion: 2019.4.10f1
+          targetPlatform: WebGL
+
+      - uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./build
