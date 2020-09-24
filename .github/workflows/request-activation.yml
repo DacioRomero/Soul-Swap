@@ -1,0 +1,18 @@
+name: Request Activation
+
+on: workflow_dispatch
+
+jobs:
+  request:
+    name: Request
+    runs-on: ubuntu-latest
+    steps:
+      - uses: webbertakken/unity-request-manual-activation-file@v1.1
+        id: manual-activation-file
+        with:
+          unityVersion: 2019.4.10f1
+
+      - uses: actions/upload-artifact@v2
+        with:
+          name: ${{ steps.manual-activation-file.outputs.filePath }}
+          path: ${{ steps.manual-activation-file.outputs.filePath }}
